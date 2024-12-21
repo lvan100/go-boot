@@ -20,11 +20,30 @@ import (
 	"github.com/lvan100/go-boot"
 )
 
+type BootCtx struct {
+	Value int
+}
+
 type AppCtx struct {
 	Value time.Duration
 }
 
 func main() {
+
+	bootstrap := boot.NewBootstrap(&BootCtx{
+		Value: 1,
+	})
+
+	bootstrap.InitConf = func(bootCtx *BootCtx) {}
+	bootstrap.InitLoggers = func(bootCtx *BootCtx) {}
+	bootstrap.CloseLoggers = func(bootCtx *BootCtx) {}
+	bootstrap.InitClients = func(bootCtx *BootCtx) {}
+	bootstrap.CloseClients = func(bootCtx *BootCtx) {}
+
+	bootstrap.Bootstrap = func(bootCtx *BootCtx) {
+		bootstrap.Msg("bootstrap is run")
+	}
+
 	app := boot.NewApp(&AppCtx{
 		Value: time.Second,
 	})
@@ -45,5 +64,6 @@ func main() {
 	}
 	app.StopServers = func(appCtx *AppCtx) {}
 
+	app.Bootstrap = bootstrap
 	app.Run()
 }

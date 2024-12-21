@@ -22,10 +22,11 @@ import (
 )
 
 // AppContext is the context of the application.
-type AppContext interface{}
+type AppContext any
 
 // App is a web application with some fixed steps.
 type App[T AppContext] struct {
+	Bootstrap    BootstrapInterface
 	appCtx       T
 	exitChan     chan struct{}
 	InitConf     func(appCtx T)
@@ -49,7 +50,7 @@ func NewApp[T AppContext](appCtx T) *App[T] {
 
 // Msg prints a message to the console.
 func (app *App[T]) Msg(msg string) {
-	log.Println(msg)
+	log.Println("application: " + msg)
 }
 
 // Run runs the application.
@@ -57,6 +58,16 @@ func (app *App[T]) Run() {
 	defer func() {
 		app.Msg("program is exited")
 	}()
+
+	// bootstrap
+	if app.Bootstrap != nil {
+		app.Msg("bootstrap before app run")
+		app.Bootstrap.doBeforeAppRun()
+		defer func() {
+			app.Msg("bootstrap after app exit")
+			app.Bootstrap.doAfterAppExit()
+		}()
+	}
 
 	// config
 	if app.InitConf != nil {
@@ -68,12 +79,12 @@ func (app *App[T]) Run() {
 	{
 		defer func() {
 			if app.CloseLoggers != nil {
-				app.Msg("close log")
+				app.Msg("close loggers")
 				app.CloseLoggers(app.appCtx)
 			}
 		}()
 		if app.InitLoggers != nil {
-			app.Msg("init log")
+			app.Msg("init loggers")
 			app.InitLoggers(app.appCtx)
 		}
 	}
