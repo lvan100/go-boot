@@ -15,37 +15,67 @@
 package boot
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
+
+	"github.com/lvan100/go-conf"
 )
+
+const bannerText = ` 
+__/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__
+\    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    /
+/_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\
+  \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/  
+                               _                       _                  ___         ___         ___          
+        __ _    ___           | |__     ___     ___   | |_      __   __  / _ \       / _ \       / _ \         
+       / _' |  / _ \   _____  | '_ \   / _ \   / _ \  | __|     \ \ / / | | | |     | | | |     | | | |        
+      | (_| | | (_) | |_____| | |_) | | (_) | | (_) | | |_       \ V /  | |_| |  _  | |_| |  _  | |_| |        
+       \__, |  \___/          |_.__/   \___/   \___/   \__|       \_/    \___/  (_)  \___/  (_)  \___/         
+       |___/                                                                                                   
+__/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__ __/\__
+\    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    / \    /
+/_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\ /_  _\
+  \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/     \/   
+`
 
 // AppContext is the context of the application.
 type AppContext any
 
 // App is a web application with some fixed steps.
 type App[T AppContext] struct {
-	Bootstrap    BootstrapInterface
-	appCtx       T
-	exitChan     chan struct{}
-	InitConf     func(appCtx T)
-	InitLoggers  func(appCtx T)
-	InitClients  func(appCtx T)
-	StartTasks   func(appCtx T)
-	StartServers func(appCtx T)
-	StopServers  func(appCtx T)
-	StopTasks    func(appCtx T)
-	CloseClients func(appCtx T)
-	CloseLoggers func(appCtx T)
+	Bootstrap     BootstrapInterface
+	appCtx        T
+	exitChan      chan struct{}
+	InitConf      func(appCtx T)
+	InitLoggers   func(appCtx T)
+	InitClients   func(appCtx T)
+	StartTasks    func(appCtx T)
+	StartServers  func(appCtx T)
+	StopServers   func(appCtx T)
+	StopTasks     func(appCtx T)
+	CloseClients  func(appCtx T)
+	CloseLoggers  func(appCtx T)
+	banner        string
+	Configuration *conf.Configuration
 }
 
 // NewApp creates a new App.
 func NewApp[T AppContext](appCtx T) *App[T] {
 	return &App[T]{
-		appCtx:   appCtx,
-		exitChan: make(chan struct{}),
+		appCtx:        appCtx,
+		exitChan:      make(chan struct{}),
+		banner:        strings.TrimSpace(bannerText),
+		Configuration: conf.NewConfiguration(),
 	}
+}
+
+// SetBanner sets the banner of the application.
+func (app *App[T]) SetBanner(banner string) {
+	app.banner = banner
 }
 
 // Msg prints a message to the console.
@@ -55,6 +85,11 @@ func (app *App[T]) Msg(msg string) {
 
 // Run runs the application.
 func (app *App[T]) Run() {
+
+	if app.banner != "" {
+		fmt.Println(app.banner)
+	}
+
 	defer func() {
 		app.Msg("program is exited")
 	}()

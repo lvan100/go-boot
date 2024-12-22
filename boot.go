@@ -16,6 +16,8 @@ package boot
 
 import (
 	"log"
+
+	"github.com/lvan100/go-conf"
 )
 
 // BootstrapInterface is a bootstrap interface.
@@ -36,6 +38,7 @@ type Bootstrap[T BootstrapContext] struct {
 	InitClients  func(bootCtx T)
 	CloseClients func(bootCtx T)
 	CloseLoggers func(bootCtx T)
+	Bootstrapper *conf.Bootstrapper
 }
 
 var _ BootstrapInterface = (*Bootstrap[any])(nil)
@@ -43,7 +46,8 @@ var _ BootstrapInterface = (*Bootstrap[any])(nil)
 // NewBootstrap creates a new bootstrap.
 func NewBootstrap[T BootstrapContext](bootCtx T) *Bootstrap[T] {
 	return &Bootstrap[T]{
-		bootCtx: bootCtx,
+		bootCtx:      bootCtx,
+		Bootstrapper: conf.NewBootstrapper(),
 	}
 }
 

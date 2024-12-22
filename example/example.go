@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/lvan100/go-boot"
@@ -34,7 +35,13 @@ func main() {
 		Value: 1,
 	})
 
-	bootstrap.InitConf = func(bootCtx *BootCtx) {}
+	bootstrap.InitConf = func(bootCtx *BootCtx) {
+		p, err := bootstrap.Bootstrapper.Refresh()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(p.Data())
+	}
 	bootstrap.InitLoggers = func(bootCtx *BootCtx) {}
 	bootstrap.CloseLoggers = func(bootCtx *BootCtx) {}
 	bootstrap.InitClients = func(bootCtx *BootCtx) {}
@@ -48,7 +55,13 @@ func main() {
 		Value: time.Second,
 	})
 
-	app.InitConf = func(appCtx *AppCtx) {}
+	app.InitConf = func(appCtx *AppCtx) {
+		p, err := app.Configuration.Refresh()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(p.Data())
+	}
 	app.InitLoggers = func(appCtx *AppCtx) {}
 	app.CloseLoggers = func(appCtx *AppCtx) {}
 	app.InitClients = func(appCtx *AppCtx) {}
